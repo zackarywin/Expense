@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ledger-data
+spec:
+  accessModes: ["ReadWriteOnce"]
+  # RKE2 does not ship a default StorageClass. Set this to one that exists
+  # in your cluster (kubectl get storageclass), e.g. longhorn or local-path.
+  # storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi

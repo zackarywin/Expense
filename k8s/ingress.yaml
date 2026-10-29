@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ledger
+  # The app has NO built-in auth. Put auth in front of it before exposing it
+  # beyond a trusted network. With ingress-nginx you can use basic-auth
+  # annotations; with Traefik, use a basicAuth Middleware. Examples in the
+  # README / chat notes.
+spec:
+  # Check what your cluster has: kubectl get ingressclass
+  # (usually "nginx" on older RKE2, "traefik" on RKE2 v1.36+)
+  ingressClassName: nginx
+  rules:
+    - host: ledger.example.com            # <- change me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ledger
+                port:
+                  name: http
+  # Uncomment for TLS (e.g. with cert-manager or a pre-made secret)
+  # tls:
+  #   - hosts: [ledger.example.com]
+  #     secretName: ledger-tls

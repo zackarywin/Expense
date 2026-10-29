@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — Expense Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="page">
+
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">§</span>
+      <div>
+        <h1>Ledger</h1>
+        <p class="brand-sub">Monthly budget &amp; expense tracker</p>
+      </div>
+    </div>
+
+    <div class="month-nav">
+      <button id="month-prev" class="icon-btn" aria-label="Previous month" type="button">&larr;</button>
+      <select id="month-select" aria-label="Select month"></select>
+      <button id="month-next" class="icon-btn" aria-label="Next month" type="button">&rarr;</button>
+    </div>
+  </header>
+
+  <p id="inherited-note" class="inherited-note" hidden>
+    No income or savings goal set for this month yet — showing last month's numbers.
+    <button id="confirm-inherited" class="link-btn" type="button">Use these for this month</button>
+  </p>
+
+  <section class="statement" aria-label="Monthly statement">
+    <div class="statement-line">
+      <label for="income-input">Income</label>
+      <div class="statement-value">
+        <span class="currency">$</span>
+        <input id="income-input" type="number" inputmode="decimal" min="0" step="0.01" value="0">
+      </div>
+    </div>
+    <div class="statement-line">
+      <label for="savings-input">Savings goal</label>
+      <div class="statement-value">
+        <span class="currency">$</span>
+        <input id="savings-input" type="number" inputmode="decimal" min="0" step="0.01" value="0">
+      </div>
+    </div>
+    <div class="statement-line readonly">
+      <label>Spent so far</label>
+      <div class="statement-value">
+        <span class="currency">$</span>
+        <span id="spent-value">0.00</span>
+      </div>
+    </div>
+    <div class="statement-line readonly remaining" id="remaining-line">
+      <label>Remaining budget</label>
+      <div class="statement-value">
+        <span class="currency">$</span>
+        <span id="remaining-value">0.00</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="tape-section" aria-label="Budget usage">
+    <div class="tape-header">
+      <span id="tape-label">$0.00 of $0.00 available to spend</span>
+      <span id="tape-pct">0%</span>
+    </div>
+    <div class="tape-track" id="tape-track">
+      <div class="tape-fill" id="tape-fill"></div>
+    </div>
+  </section>
+
+  <main class="content-grid">
+
+    <section class="panel" aria-label="Spending by category">
+      <h2>By category</h2>
+      <div id="category-breakdown" class="category-breakdown">
+        <p class="empty-state">No expenses logged this month yet.</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Add an expense">
+      <h2>Add an expense</h2>
+      <form id="expense-form" class="expense-form">
+        <div class="field-row">
+          <div class="field">
+            <label for="exp-date">Date</label>
+            <input id="exp-date" name="date" type="date" required>
+          </div>
+          <div class="field">
+            <label for="exp-amount">Amount</label>
+            <input id="exp-amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="exp-category">Category</label>
+          <input id="exp-category" name="category" list="category-options" placeholder="e.g. Groceries" required>
+          <datalist id="category-options">
+            {% for c in default_categories %}
+            <option value="{{ c }}">
+            {% endfor %}
+          </datalist>
+        </div>
+        <div class="field">
+          <label for="exp-description">Note <span class="optional">(optional)</span></label>
+          <input id="exp-description" name="description" type="text" placeholder="What was this for?" maxlength="280">
+        </div>
+        <button type="submit" class="primary-btn">Add expense</button>
+        <p id="form-error" class="form-error" hidden></p>
+      </form>
+    </section>
+
+  </main>
+
+  <section class="panel entries-panel" aria-label="Expense entries">
+    <h2>Entries this month</h2>
+    <div class="table-wrap">
+      <table id="expense-table">
+        <thead>
+          <tr>
+            <th class="col-date">Date</th>
+            <th class="col-category">Category</th>
+            <th class="col-desc">Note</th>
+            <th class="col-amount">Amount</th>
+            <th class="col-actions"></th>
+          </tr>
+        </thead>
+        <tbody id="expense-rows">
+        </tbody>
+      </table>
+      <p id="entries-empty" class="empty-state" hidden>No entries yet — add your first expense above.</p>
+    </div>
+  </section>
+
+  <footer class="app-footer">
+    <p>Stored locally in SQLite. Nothing leaves this server.</p>
+  </footer>
+
+</div>
+
+<template id="row-template">
+  <tr class="expense-row">
+    <td class="col-date"><input type="date" class="row-date"></td>
+    <td class="col-category"><input type="text" class="row-category" list="category-options"></td>
+    <td class="col-desc"><input type="text" class="row-desc" maxlength="280"></td>
+    <td class="col-amount"><input type="number" class="row-amount" min="0.01" step="0.01"></td>
+    <td class="col-actions">
+      <button type="button" class="row-save icon-btn" title="Save">&#10003;</button>
+      <button type="button" class="row-delete icon-btn danger" title="Delete">&times;</button>
+    </td>
+  </tr>
+</template>
+
+<script>
+  window.APP_BOOTSTRAP = {
+    currentMonth: {{ current_month | tojson }}
+  };
+</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

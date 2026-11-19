@@ -1,0 +1,43 @@
+[Unit]
+Description=Ledger expense tracker (gunicorn)
+Documentation=file:///opt/ledger/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ledger
+Group=ledger
+WorkingDirectory=/opt/ledger
+
+# Defaults; anything in /etc/sysconfig/ledger overrides these.
+Environment=EXPENSE_TRACKER_DATA_DIR=/var/lib/ledger
+EnvironmentFile=-/etc/sysconfig/ledger
+
+ExecStart=/opt/ledger/venv/bin/gunicorn --config /opt/ledger/gunicorn.conf.py app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+Restart=on-failure
+RestartSec=5
+
+# systemd creates /var/lib/ledger (owned by ledger:ledger) for the SQLite DB.
+StateDirectory=ledger
+StateDirectoryMode=0750
+UMask=0027
+
+# Hardening: the service can write only to its state directory.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target

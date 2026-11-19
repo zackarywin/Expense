@@ -1,0 +1,16 @@
+# /etc/sysconfig/ledger: settings for the ledger systemd service.
+# After editing, apply with:  sudo systemctl restart ledger
+
+# Where the SQLite database file lives.
+EXPENSE_TRACKER_DATA_DIR=/var/lib/ledger
+
+# Address gunicorn listens on. Keep it on loopback when nginx is in front.
+# If you change it after installing, update the upstream "server" line in
+# /etc/nginx/conf.d/ledger.conf to match.
+LEDGER_BIND=127.0.0.1:8000
+
+# Worker processes. SQLite serializes writes, so 2-4 is plenty.
+LEDGER_WORKERS=2
+
+# LEDGER_TIMEOUT=30
+# LEDGER_LOG_LEVEL=info

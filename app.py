@@ -8,8 +8,8 @@ there is nothing else to install or run.
 Run directly for development:
     python app.py
 
-Run in production (see README.md for a systemd unit):
-    gunicorn -w 2 -b 127.0.0.1:8000 app:app
+Run in production on RHEL with gunicorn + systemd + nginx:
+    sudo ./deploy/install.sh        (see README.md)
 """
 
 import os
@@ -165,6 +165,14 @@ def index():
         current_month=current_month(),
         default_categories=DEFAULT_CATEGORIES,
     )
+
+
+@app.route("/healthz")
+def healthz():
+    """Liveness check for the installer and monitoring: confirms the
+    database is reachable."""
+    get_db().execute("SELECT 1").fetchone()
+    return jsonify({"status": "ok"})
 
 
 # ----------------------------------------------------------------------------
